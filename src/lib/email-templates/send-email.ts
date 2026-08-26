@@ -5,8 +5,8 @@ import { TEMPLATES, type TemplateName } from './registry'
 
 // Set this to your verified sender domain once email setup is complete
 // (e.g. "notify.yourdomain.com"). Sending is skipped until then.
-export const SENDER_DOMAIN = ''
-export const FROM_EMAIL = `Portfolio <notifications@${SENDER_DOMAIN || 'localhost'}>`
+export const SENDER_DOMAIN: string = ''
+export const FROM_EMAIL: string = `Portfolio <notifications@${SENDER_DOMAIN || 'localhost'}>`
 
 export interface SendTemplateOptions {
   templateData?: Record<string, unknown>
@@ -43,9 +43,9 @@ export async function sendTemplateEmail(
         html,
         text,
         purpose: 'transactional',
-        reply_to: options.replyTo,
+        ...(options.replyTo ? { reply_to: options.replyTo } : {}),
         label: name,
-        idempotency_key: options.idempotencyKey,
+        ...(options.idempotencyKey ? { idempotency_key: options.idempotencyKey } : {}),
       },
       { apiKey: process.env['LOVABLE_API_KEY']! },
     )
