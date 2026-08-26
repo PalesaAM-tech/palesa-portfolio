@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import heroIllustration from "@/assets/hero-illustration.png";
+import { submitContact } from "@/lib/contact.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -350,7 +352,8 @@ function Contact() {
           title="Get In Touch"
           subtitle="I am actively looking for internship opportunities and entry-level IT roles."
         />
-        <div className="mx-auto flex max-w-md flex-col gap-4">
+        <ContactForm />
+        <div className="mx-auto mt-10 flex max-w-md flex-col gap-4">
           <a
             href={`mailto:${EMAIL}`}
             className="flex items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-4 shadow-sm transition-colors hover:border-primary/40 hover:bg-primary/5"
@@ -375,6 +378,129 @@ function Contact() {
         </div>
       </div>
     </section>
+  );
+}
+
+function ContactForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [company, setCompany] = useState(""); // honeypot
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("sending");
+    setError(null);
+    try {
+      const result = await submitContact({ data: { name, email, message, company } });
+      if (result.ok) {
+        setStatus("sent");
+        setName("");
+        setEmail("");
+        setMessage("");
+      } else {
+        setStatus("error");
+        setError(result.error);
+      }
+    } catch {
+      setStatus("error");
+      setError("Something went wrong. Please try again.");
+    }
+  }
+
+  if (status === "sent") {
+    return (
+      <div className="mx-auto max-w-md rounded-2xl border border-primary/30 bg-primary/5 p-8">
+        <p className="text-lg font-semibold text-foreground">Thank you for your message!</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          I've received it and will get back to you as soon as possible.
+        </p>
+        <button
+          type="button"
+          onClick={() => setStatus("idle")}
+          className="mt-6 rounded-lg border border-primary px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+        >
+          Send another message
+        </button>
+      </div>
+    );
+  }
+
+  const inputClass =
+    "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
+
+  return (
+    <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4 text-left">
+      <div>
+        <label htmlFor="contact-name" className="mb-1.5 block text-sm font-medium text-foreground">
+          Name
+        </label>
+        <input
+          id="contact-name"
+          type="text"
+          required
+          maxLength={100}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name"
+          className={inputClass}
+        />
+      </div>
+      <div>
+        <label htmlFor="contact-email" className="mb-1.5 block text-sm font-medium text-foreground">
+          Email
+        </label>
+        <input
+          id="contact-email"
+          type="email"
+          required
+          maxLength={255}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          className={inputClass}
+        />
+      </div>
+      <div>
+        <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-foreground">
+          Message
+        </label>
+        <textarea
+          id="contact-message"
+          required
+          maxLength={2000}
+          rows={5}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="How can I help you?"
+          className={inputClass}
+        />
+      </div>
+      {/* Honeypot field — hidden from real users */}
+      <input
+        type="text"
+        value={company}
+        onChange={(e) => setCompany(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="hidden"
+      />
+      {error && status === "error" && (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={status === "sending"}
+        className="w-full rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {status === "sending" ? "Sending…" : "Send Message"}
+      </button>
+    </form>
   );
 }
 
