@@ -5,6 +5,6 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
-    base: "/palesa-portfolio",
+    base: "/palesa-portfolio/",
   },
 });
