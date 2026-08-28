@@ -20,7 +20,7 @@ jobs:
       - run: ls -la dist || ls -la build || echo "no dist found"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./.output/public
   deploy:
     needs: build
     runs-on: ubuntu-latest
